@@ -18,7 +18,7 @@
 
 #include "Porte.h"
 #include "Piece.h"
-
+#include <map>
 
 namespace TP1
 {
@@ -103,6 +103,12 @@ public:
 	bool appartient(const Piece& p) const;
 
 private:
+  std::vector<Piece*> getToutesPieces(const Piece *piece, Couleur couleur);
+
+
+  void parcourtPorte(Piece *piece, Couleur color);
+
+  void reinitialise();
 
 	//Méthode privée fournie dans le fichier Labyrinthe.cpp, elle ajoute un passage
 	//dans un labyrinthe. Elle est appelée par la méthode chargeLabyrinthe()
@@ -140,6 +146,7 @@ private:
 	Piece *depart; /*!< Adresse de la pièce de départ (et non du noeud qui la contient) */
 	Piece *arrivee; /*!< Adresse de la pièce d'arrivée (et non du noeud qui la contient) */
 
+	std::map<Couleur, int> resultats;
 
 };
 

@@ -10,7 +10,6 @@
 #ifndef PORTE_H_
 #define PORTE_H_
 
-
 namespace TP1
 {
 /**

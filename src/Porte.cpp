@@ -8,6 +8,7 @@
  */
 
 #include "Porte.h"
+#include "Piece.h"
 
 namespace TP1
 {
@@ -15,18 +16,18 @@ namespace TP1
 
   Porte::Porte(Couleur c, Piece *d): destination(d), color(c) { }
 
-  Porte::Porte(const Porte &p): destination(p.destination), color(p.color) { }
+  Porte::Porte(const Porte &p): destination(p.destination), color(p.color) {}
 
-  Porte::~Porte() { }
+  Porte::~Porte() { };
 
   const Porte &Porte::operator=(const Porte &source) {
     destination = source.destination;
     color = source.color;
-    return *this;
+    return (*this);
   }
 
   bool Porte::operator==(const Porte &source) const {
-    return (source.getDestination() == destination && source.getCouleur() == color);
+    return (source.destination == destination && source.color == color);
   }
 
   Couleur Porte::getCouleur() const { return color; }

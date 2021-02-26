@@ -9,6 +9,7 @@
 
 #include <sstream>      // std::ostringstream
 #include <iostream>
+#include <climits>
 #include "Piece.h"
 
 // Utils (should be in an utils file)
@@ -29,9 +30,17 @@ std::string getId() {
 
 namespace TP1
 {
-  Piece::Piece(): portes(std::list<Porte>()), parcourue(false), nom(getId()), distanceDuDebut(0) { }
+  Piece::Piece()
+    : portes(std::list<Porte>()),
+      parcourue(false),
+      nom(getId()),
+      distanceDuDebut(INT_MAX) { }
 
-  Piece::Piece(const std::string &s): portes(std::list<Porte>()), parcourue(false), nom(s), distanceDuDebut(0) { }
+  Piece::Piece(const std::string& s)
+    : portes(std::list<Porte>()),
+      parcourue(false),
+      nom(s),
+      distanceDuDebut(INT_MAX) { }
 
   Piece::Piece(const Piece &source)
     : portes(source.getPortes()),
@@ -48,7 +57,7 @@ namespace TP1
     portes = source.getPortes();
     parcourue = source.getParcourue();
     distanceDuDebut = source.getDistanceDuDebut();
-    return *this;
+    return (*this);
   }
 
   std::string Piece::getNom() const { return nom; }
@@ -64,7 +73,8 @@ namespace TP1
   void Piece::setDistanceDuDebut(int d) { distanceDuDebut = d; }
 
   void Piece::ajoutePorte(const Porte &p) {
-    std::cout << "<Piece::ajoutePorte> Function called with: " << p.getDestination()->getNom() << "\tcolor: " << p.getCouleur() << std::endl;
+    if (p.getDestination() == nullptr)
+      return;
     portes.push_back(p);
   }
 }

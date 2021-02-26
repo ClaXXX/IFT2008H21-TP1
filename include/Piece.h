@@ -28,7 +28,7 @@ public:
 	Piece();
 
 	//Surcharge du constructeur, le nom de la pièce en argument
-	Piece(const std::string & s);
+	explicit Piece(const std::string & s);
 
 	//constructeur de copie
 	Piece(const Piece& source);

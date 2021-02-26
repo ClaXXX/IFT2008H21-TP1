@@ -24,7 +24,7 @@ int main()
         cout << "Entrez le nom du labyrinthe (exp: 2x3, 10x10, .., 50x65) : ";
         getline(cin, reponse);
 
-		entree.open("../data/Lab" + reponse + "/rouge" + reponse + ".txt", ios::in);
+		entree.open("data/Lab" + reponse + "/rouge" + reponse + ".txt", ios::in);
 		if (!entree.is_open())
 		{
 			cout << "Fichier rouge introuvable.\n";
