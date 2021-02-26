@@ -1,7 +1,7 @@
 /**
  * \file Labyrinthe.cpp
  * \brief Le code des méthodes membres et privés de la classe Labyrinthe.
- * \author IFT-2008, Étudiant(e)
+ * \author IFT-2008, Claire Bouttes
  * \version 0.1
  * \date février 2021
  * 
@@ -21,7 +21,7 @@ namespace TP1
 //	Méthodes fournies
 // -------------------------------------------------------------------------------------------------
 
-/**
+/**!
  * \fn	void Labyrinthe::chargeLabyrinthe(Couleur couleur, std::ifstream &entree)
  * \param[in]	couleur, la couleur du jouer auquel le labyrinthe chargé s'applique
  * \param[in]	entree, fichier contenant la définition du labyrinthe
@@ -216,7 +216,10 @@ void Labyrinthe::ajoutePassage(Couleur couleur, int i1, int j1, int i2, int j2)
       : dernier(source.dernier), depart(source.depart), arrivee(source.arrivee) {}
 
     Labyrinthe::~Labyrinthe() {
+      if (dernier == nullptr)
+        return;
       NoeudListePieces *av = nullptr;
+
       for (NoeudListePieces *tmp = dernier->suivant; tmp && tmp->piece.getNom() != dernier->piece.getNom(); tmp = tmp->suivant) {
         delete av;
         av = tmp;
@@ -232,36 +235,57 @@ void Labyrinthe::ajoutePassage(Couleur couleur, int i1, int j1, int i2, int j2)
       return *this;
     }
 
+    /**
+     * \fn std::vector<Piece*> Labyrinthe::getToutesPieces(const Piece *piece, Couleur couleur)
+     * \brief Cherche toutes les pièces qui sont accessibles depuis une piece pour une couleur
+     * \param piece: piece depuis laquelle on cherche les portes
+     * \param couleur: couleur de porte acceptée
+     * \return un tableau (std::vector<Piece*>) de pointeur sur les pièces accessibles et non visitées
+     */
     std::vector<Piece*> Labyrinthe::getToutesPieces(const Piece *piece, Couleur couleur) {
       std::vector<Piece*> pieces;
       NoeudListePieces* tmp = dernier;
 
       for (const auto& porte : piece->getPortes())
-        if (porte.getCouleur() == couleur) pieces.push_back(porte.getDestination());
+        if (porte.getCouleur() == couleur && !porte.getDestination()->getParcourue()) {
+          pieces.push_back(porte.getDestination());
+          porte.getDestination()->setParcourue(true);
+        }
       do {
         for (const auto& porte : tmp->piece.getPortes()) {
-          if (porte.getCouleur() == couleur && porte.getDestination()->getNom() == piece->getNom())
+          if (porte.getCouleur() == couleur && porte.getDestination()->getNom() == piece->getNom()
+            && !tmp->piece.getParcourue()) {
             pieces.push_back(&tmp->piece);
+            tmp->piece.setParcourue(true);
+          }
         }
         tmp = tmp->suivant;
       } while (tmp && tmp->piece.getNom() != dernier->piece.getNom());
       return pieces;
     }
 
+    /**
+     * \fn void Labyrinthe::parcourtPorte(Piece *piece, const Couleur couleur)
+     * \brief Function récursive qui parcourt pour une porte toutes les pièces auquelles elle peut accéder et informe de la distance depuis le début
+     * \param piece: pièce dont on va tester toutes les portes
+     * \param couleur: Couleur du joueur à tester
+     */
     void Labyrinthe::parcourtPorte(Piece *piece, const Couleur couleur) {
-      piece->setParcourue(true);
       if (piece->getNom() == arrivee->getNom())
         return;
 
-      for (const auto& p : getToutesPieces(piece, couleur)) {
-        if (!p->getParcourue()) {
-          if (piece->getDistanceDuDebut() + 1 < p->getDistanceDuDebut())
-            p->setDistanceDuDebut((piece->getDistanceDuDebut() + 1));
-          parcourtPorte(p, couleur);
+      for (auto p : getToutesPieces(piece, couleur)) {
+        if (piece->getDistanceDuDebut() + 1 < p->getDistanceDuDebut()) {
+          p->setDistanceDuDebut((piece->getDistanceDuDebut() + 1));
         }
+        parcourtPorte(p, couleur);
       }
     }
 
+    /**
+     * \fn void Labyrinthe::reinitialise()
+     * \brief Reinitialise toutes les pièces comme non parcourues et avec une distance presque infinie
+     */
     void Labyrinthe::reinitialise() {
       NoeudListePieces* tmp = dernier;
       do {
@@ -271,23 +295,40 @@ void Labyrinthe::ajoutePassage(Couleur couleur, int i1, int j1, int i2, int j2)
       } while (tmp && tmp->piece.getNom() != dernier->piece.getNom());
     }
 
+    /**
+     * \fn int Labyrinthe::solutionner(Couleur joueur)
+     * \brief Pour une couleur, calcul une distance pour allé à l'arrivée
+     * \param[Couleur] joueur: Couleur du joueur testé
+     * \return la distance parcourue pour arrivée à la sortie du labyrinthe
+     * \post Le labyrinthe doit déjà avoir été chargé pour la couleur demandée
+     */
     int Labyrinthe::solutionner(Couleur joueur) {
       if (depart->getNom() == arrivee->getNom())
-        return (resultats[joueur] = 0);
+        return (0);
       reinitialise();
       depart->setDistanceDuDebut(0);
       parcourtPorte(depart, joueur);
       if (!arrivee->getParcourue())
         return (-1);
-      resultats[joueur] = arrivee->getDistanceDuDebut();
-      return resultats[joueur];
+      return arrivee->getDistanceDuDebut();
     }
 
+    /**
+     * \fn Couleur Labyrinthe::trouveGagnant()
+     * \brief Trouve le gagnant parmi l'énumération des couleurs donc rouge, vert, bleue, jaune
+     * \return le joueur qui a réussi à parcourrir le moins de chemin, en cas d'Ex aequo retourne le premier dans l'énumération à avoir réussi
+     * \post Le labyrinthe doit déjà avoir été chargé pour toutes les couleurs
+     */
     Couleur Labyrinthe::trouveGagnant() {
       std::pair<Couleur, int> meilleur(Aucun, INT_MAX);
+      std::map<Couleur, int> resultats;
 
-      for (auto resultat : resultats)
-        if (resultat.second < meilleur.second) meilleur = resultat;
+      for (int i = Rouge; i < Aucun; i++)
+        resultats[(Couleur )i] = solutionner((Couleur )i);
+
+      for (int i = Rouge; i < Aucun; i++)
+        if (resultats.at((Couleur )i) != -1 && resultats.at((Couleur )i) < meilleur.second)
+          meilleur = std::pair<Couleur, int>((Couleur )i, resultats.at((Couleur)i));
       return meilleur.first;
     }
 
@@ -295,14 +336,26 @@ void Labyrinthe::ajoutePassage(Couleur couleur, int i1, int j1, int i2, int j2)
       return trouvePiece(p.getNom()) != nullptr;
     }
 
+    /**
+     * \fn void Labyrinthe::placeDepart(const string &nom)
+     * \brief initialise la variable de départ par l'adresse de la pièce de départ
+     * \param nom: nom de la pièce de départ
+     * \throw logic_error: si la pièce de départ n'existe pas
+     */
     void Labyrinthe::placeDepart(const string &nom) {
       NoeudListePieces *noeud = trouvePiece(nom);
 
       if (!noeud)
-        throw logic_error("La pièce de départ n'existe pas");
+        throw logic_error("<Labyrinthe::placeDepart> La pièce de départ n'existe pas");
       depart = &noeud->piece;
     }
 
+    /**
+     * \fn void Labyrinthe::placeArrivee(const string &nom)
+     * \brief initialise la variable d'arrivée par l'adresse de la pièce d'arrivé
+     * \param nom: nom de la pièce d'arrivée
+     * \throw logic_error: si la pièce d'arrivée n'existe pas
+     */
     void Labyrinthe::placeArrivee(const string &nom) {
       NoeudListePieces *noeud = trouvePiece(nom);
 
@@ -311,6 +364,12 @@ void Labyrinthe::ajoutePassage(Couleur couleur, int i1, int j1, int i2, int j2)
       arrivee = &noeud->piece;
     }
 
+    /**
+     * \fn Labyrinthe::NoeudListePieces *Labyrinthe::trouvePiece(const string &nom) const
+     * \brief Parcours tous les noeuds qui existent pour trouver le noeuds avec le nom qui correspond
+     * \param nom: nom de la porte du noeud à trouver
+     * \return l'adresse du noeud trouvé, nullptr autrement
+     */
     Labyrinthe::NoeudListePieces *Labyrinthe::trouvePiece(const string &nom) const {
       if (nom.empty())
         throw invalid_argument("Nom ne doit pas être vide");

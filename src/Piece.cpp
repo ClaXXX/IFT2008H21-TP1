@@ -15,8 +15,8 @@
 // Utils (should be in an utils file)
 
 /**
- *
- * @return
+ * Simple function qui génère un id unique
+ * @return un id unique
  */
 std::string getId() {
   static int n = 1;
@@ -72,9 +72,5 @@ namespace TP1
 
   void Piece::setDistanceDuDebut(int d) { distanceDuDebut = d; }
 
-  void Piece::ajoutePorte(const Porte &p) {
-    if (p.getDestination() == nullptr)
-      return;
-    portes.push_back(p);
-  }
+  void Piece::ajoutePorte(const Porte &p) { portes.push_back(p); }
 }
