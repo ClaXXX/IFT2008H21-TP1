@@ -14,6 +14,26 @@ TEST(Labyrinthe, Constructor) {
   EXPECT_EQ (lab.getArrivee(), nullptr);
 }
 
+TEST(Labyrinthe, ConstructorCopy) {
+  Labyrinthe *lab1 = new Labyrinthe;
+  Labyrinthe lab2(*lab1);
+  delete lab1;
+  EXPECT_EQ (lab2.getDepart(), nullptr);
+  EXPECT_EQ (lab2.getArrivee(), nullptr);
+
+  const std::string size = "2x3";
+  lab1 = new Labyrinthe();
+  std::ifstream entree;
+  entree.open("../../data/Lab" + size + "/rouge" + size + ".txt", std::ios::in);
+  lab1->chargeLabyrinthe(Rouge, entree);
+  entree.close();
+  Labyrinthe lab3(*lab1);
+  lab2 = *lab1;
+  delete lab1;
+  EXPECT_EQ (lab2.getDepart()->getNom(), "0,0");
+  EXPECT_EQ (lab3.getDepart()->getNom(), "0,0");
+}
+
 TEST(Labyrinthe, Lab2x3) {
   const std::string size = "2x3";
   Labyrinthe lab;

@@ -210,11 +210,42 @@ void Labyrinthe::ajoutePassage(Couleur couleur, int i1, int j1, int i2, int j2)
         }
     }
 
+    /**
+     * \fn Labyrinthe::Labyrinthe()
+     * \brief Constructeur par défault
+     */
     Labyrinthe::Labyrinthe(): dernier(nullptr), depart(nullptr), arrivee(nullptr) { }
 
+    /**
+     * \fn Labyrinthe::Labyrinthe(const Labyrinthe &source)
+     * \brief Constructeur de copie | Copie en profondeur
+     * @param source[Labyrinthe]: model de la copie
+     */
     Labyrinthe::Labyrinthe(const Labyrinthe &source)
-      : dernier(source.dernier), depart(source.depart), arrivee(source.arrivee) {}
+            : dernier(nullptr), depart(nullptr), arrivee(nullptr) {
+      NoeudListePieces* tmp = source.dernier;
+      dernier = new NoeudListePieces;
+      NoeudListePieces *newTmp = dernier;
 
+      do {
+        if (!tmp)
+          break;
+        newTmp->piece = tmp->piece;
+        newTmp->suivant = new NoeudListePieces;
+        newTmp = newTmp->suivant;
+        tmp = tmp->suivant;
+      } while (tmp && tmp->piece.getNom() != source.dernier->piece.getNom());
+      newTmp->suivant = dernier;
+      if (source.depart)
+        placeDepart(source.depart->getNom());
+      if (source.arrivee)
+        placeArrivee(source.arrivee->getNom());
+    }
+
+    /**
+     * \fn Labyrinthe::~Labyrinthe()
+     * \brief Destructeur par défault | supprome tous les noeuds
+     */
     Labyrinthe::~Labyrinthe() {
       if (dernier == nullptr)
         return;
@@ -228,10 +259,31 @@ void Labyrinthe::ajoutePassage(Couleur couleur, int i1, int j1, int i2, int j2)
       dernier = nullptr;
     }
 
+    /**
+     * \fn const Labyrinthe &Labyrinthe::operator=(const Labyrinthe &source)
+     * \brief Copie en profondeur les attributs de la source
+     * @param source: model de la copie
+     * @return Le labyrinthe avec les nouveaux attributs
+     */
     const Labyrinthe &Labyrinthe::operator=(const Labyrinthe &source) {
-      dernier = source.dernier;
-      depart = source.depart;
-      arrivee = source.arrivee;
+      NoeudListePieces* tmp = source.dernier;
+      dernier = new NoeudListePieces;
+      NoeudListePieces *newTmp = dernier;
+
+      do {
+        if (!tmp)
+          break;
+        newTmp->piece = tmp->piece;
+        newTmp->suivant = new NoeudListePieces;
+        newTmp = newTmp->suivant;
+        tmp = tmp->suivant;
+      } while (tmp && tmp->piece.getNom() != source.dernier->piece.getNom());
+      newTmp->suivant = dernier;
+
+      if (source.depart)
+        placeDepart(source.depart->getNom());
+      if (source.arrivee)
+        placeArrivee(source.arrivee->getNom());
       return *this;
     }
 
@@ -332,6 +384,12 @@ void Labyrinthe::ajoutePassage(Couleur couleur, int i1, int j1, int i2, int j2)
       return meilleur.first;
     }
 
+    /**
+     * \fn bool Labyrinthe::appartient(const Piece &p) const
+     * \brief Vérifie si une pièce appartient bien à la liste des pièces du Labyrinthe
+     * @param p[Piece]: pièce dont on vérifie l'appartenance
+     * @return true si la pièce est dans la liste des pièces du labyrinthe, false autrement
+     */
     bool Labyrinthe::appartient(const Piece &p) const {
       return trouvePiece(p.getNom()) != nullptr;
     }
